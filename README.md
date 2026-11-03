@@ -91,6 +91,20 @@ against the **maintainers' post-migration tests**, which no system sees
   which is now fixed and has a regression test.
   [Details](docs/BENCHMARK_REPORT.md#real-repositories).
 
+### The analyzer on 551,000 lines of real code
+
+It was run on seven major projects at their last Pydantic v1 release:
+FastAPI, SQLModel, Beanie, Prefect, Netflix Dispatch, spaCy and AWS Lambda
+Powertools. That is **4,400 files in 6.7 seconds, with 0 crashes.**
+
+* **Precision on held-out projects: 57/57 actionable findings correct**
+  (95% interval 93.7–100%). Every finding was labelled by hand.
+* **The first run found real bugs, now fixed and tested.** It crashed on
+  Prefect, and it confused same-named classes across modules. It also
+  suggested renames that would break custom `.dict()` overrides. One fix
+  is confirmed by the maintainers' own migration.
+  [Details](docs/BENCHMARK_REPORT.md#the-analyzer-on-large-real-codebases).
+
 Full method, every table, and per-task results:
 [**docs/BENCHMARK_REPORT.md**](docs/BENCHMARK_REPORT.md).
 
@@ -264,6 +278,8 @@ tests/            unit + integration (incl. attacks on the sandbox)
   no network at test time. Other dependencies have to be added to the image.
 * Type inference is syntactic and local. Receivers it can't resolve are
   reported for human review, never auto-fixed.
+* Pydantic imported through a project's own re-export module (for example,
+  LangChain's `langchain.pydantic_v1`) is not followed.
 
 > This is a portfolio project, not production-certified tooling. Code sent to
 > a hosted model leaves your machine. With Gemini's free tier, Google may use

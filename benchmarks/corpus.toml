@@ -1,0 +1,47 @@
+# Large real codebases at their last Pydantic v1 release. Parsed only, never executed.
+[[project]]
+name = "fastapi"
+repo = "https://github.com/tiangolo/fastapi"
+tag = "0.99.1"
+license = "MIT"
+
+[[project]]
+name = "sqlmodel"
+repo = "https://github.com/tiangolo/sqlmodel"
+tag = "0.0.8"
+license = "MIT"
+
+[[project]]
+name = "beanie"
+repo = "https://github.com/roman-right/beanie"
+tag = "1.20.0"
+license = "Apache-2.0"
+
+[[project]]
+name = "prefect"
+repo = "https://github.com/PrefectHQ/prefect"
+tag = "2.10.21"
+license = "Apache-2.0"
+
+[[project]]
+name = "dispatch"
+repo = "https://github.com/Netflix/dispatch"
+tag = "v20240731"
+license = "Apache-2.0"
+
+# Held out: added after the analyzer fixes above, labelled with no further changes.
+# (LangChain v0.0.300 was tried first and dropped: it imports Pydantic through its own
+# `langchain.pydantic_v1` shim, i.e. it was already v2-ready, so there is little to find.)
+[[project]]
+name = "spacy"
+repo = "https://github.com/explosion/spaCy"
+tag = "v3.5.4"
+license = "MIT"
+heldout = true
+
+[[project]]
+name = "powertools"
+repo = "https://github.com/aws-powertools/powertools-lambda-python"
+tag = "v2.25.0"
+license = "MIT-0"
+heldout = true

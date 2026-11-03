@@ -129,8 +129,12 @@ MOVED_MODULES: dict[str, str] = {
     "pydantic.json": "pydantic.json was removed: use model_dump(mode='json') or pydantic_core.to_jsonable_python",
     "pydantic.class_validators": "import validators from pydantic directly",
     "pydantic.datetime_parse": "pydantic.datetime_parse was removed",
-    "pydantic.fields": "ModelField was removed: use model_fields / FieldInfo",
 }
+# pydantic.fields still exists in v2: only these names survive in it.
+V2_FIELDS_NAMES = frozenset(
+    {"Field", "FieldInfo", "PrivateAttr", "ModelPrivateAttr", "computed_field",
+     "ComputedFieldInfo", "AliasChoices", "AliasPath"}
+)  # fmt: skip
 
 _LITERALS = frozenset(
     {
@@ -160,6 +164,7 @@ class _ClassInfo:
     file: str
     bases: list[str]
     fields: dict[str, str] = field(default_factory=dict)  # field name -> annotation text
+    methods: dict[str, int] = field(default_factory=dict)  # method name -> 1-based line
 
 
 @dataclass
@@ -167,14 +172,39 @@ class _FileSymbols:
     # local name -> pydantic attribute it refers to ("BaseModel", "validator", ...)
     pydantic_names: dict[str, str] = field(default_factory=dict)
     pydantic_modules: set[str] = field(default_factory=set)  # local aliases of `pydantic`
+    # local name -> (absolute module, attribute) for every `from X import a [as b]`
+    imports: dict[str, tuple[str, str]] = field(default_factory=dict)
+    modules: dict[str, str] = field(default_factory=dict)  # `import a.b as c`: "c" -> "a.b"
 
 
 @dataclass
 class RepoContext:
     symbols: dict[str, _FileSymbols]
     classes: dict[str, list[_ClassInfo]]
-    models: set[str]
+    models: set[str]  # names of model classes anywhere in the repository
     returns: dict[str, str]  # function name -> model class it returns
+    # Per file: names that refer to a model *there*. A name is only dropped when the
+    # file's own imports or definitions prove it is some other class (e.g. a
+    # SQLAlchemy `Service` while a Pydantic `Service` exists elsewhere).
+    visible: dict[str, set[str]] = field(default_factory=dict)
+
+    def models_in(self, path: str) -> set[str]:
+        return self.visible.get(path, self.models)
+
+    def override(self, model: str, method: str) -> tuple[str, str, int] | None:
+        """Where `model` or a repository ancestor defines `method` itself, if anywhere:
+        (class, file, line). Prefect's `PrefectBaseModel.dict(json_compatible=...)` is one."""
+        todo, seen = [model], set()
+        while todo:
+            name = todo.pop()
+            if name in seen:
+                continue
+            seen.add(name)
+            for info in self.classes.get(name, []):
+                if method in info.methods:
+                    return info.name, info.file, info.methods[method]
+                todo.extend(_last(b) for b in info.bases)
+        return None
 
 
 def _last(dotted: str) -> str:
@@ -185,6 +215,18 @@ def _strip_generic(base: str) -> str:
     return base.split("[", 1)[0].strip()
 
 
+def _absolute_module(module: str, path: str) -> str:
+    """`.models` imported from `pkg/sub/x.py` -> `pkg.sub.models` (dotted, from the repo root)."""
+    if not module.startswith("."):
+        return module
+    dots = len(module) - len(module.lstrip("."))
+    package = path.split("/")[:-1]
+    if dots > 1:
+        package = package[: len(package) - (dots - 1)]
+    rest = module[dots:]
+    return ".".join([*package, *([rest] if rest else [])])
+
+
 def _collect_symbols(pf: ParsedFile) -> tuple[_FileSymbols, list[_ClassInfo], dict[str, str]]:
     syms = _FileSymbols()
     classes: list[_ClassInfo] = []
@@ -192,6 +234,14 @@ def _collect_symbols(pf: ParsedFile) -> tuple[_FileSymbols, list[_ClassInfo], di
     for node in walk(pf.root):
         if node.type == "import_from_statement":
             module = text(node.child_by_field_name("module_name"))
+            absolute = _absolute_module(module, pf.path)
+            for name_node in node.children_by_field_name("name"):
+                if name_node.type == "aliased_import":
+                    real = text(name_node.child_by_field_name("name"))
+                    local = text(name_node.child_by_field_name("alias"))
+                else:
+                    real = local = text(name_node)
+                syms.imports[local] = (absolute, real)
             if module == "pydantic" or module.startswith("pydantic."):
                 for name_node in node.children_by_field_name("name"):
                     if name_node.type == "aliased_import":
@@ -209,6 +259,9 @@ def _collect_symbols(pf: ParsedFile) -> tuple[_FileSymbols, list[_ClassInfo], di
                     real = local = text(name_node)
                 if real == "pydantic":
                     syms.pydantic_modules.add(local)
+                syms.modules[
+                    local if name_node.type == "aliased_import" else real.split(".")[0]
+                ] = real if name_node.type == "aliased_import" else real.split(".")[0]
         elif node.type == "class_definition":
             name = text(node.child_by_field_name("name"))
             supers = node.child_by_field_name("superclasses")
@@ -232,6 +285,13 @@ def _collect_symbols(pf: ParsedFile) -> tuple[_FileSymbols, list[_ClassInfo], di
                     ):
                         left = text(assign.child_by_field_name("left"))
                         info.fields[left] = text(assign.child_by_field_name("type"))
+                fn = (
+                    stmt.child_by_field_name("definition")
+                    if stmt.type == "decorated_definition"
+                    else stmt
+                )
+                if fn is not None and fn.type == "function_definition":
+                    info.methods[text(fn.child_by_field_name("name"))] = start_line(fn)
             classes.append(info)
         elif node.type == "function_definition":
             ret = node.child_by_field_name("return_type")
@@ -258,21 +318,121 @@ def build_context(files: Iterable[ParsedFile]) -> RepoContext:
             return module in syms.pydantic_modules and attr in PYDANTIC_MODEL_BASES
         return syms.pydantic_names.get(base) in PYDANTIC_MODEL_BASES
 
-    models: set[str] = set()
-    for name, infos in classes.items():
-        if any(is_pydantic_base(b, c.file) for c in infos for b in c.bases):
-            models.add(name)
-    # Fixed point: subclasses of models are models, across files (resolved by name).
+    resolver = _Resolver(symbols, classes)
+    # Model identity is (file, class name): two classes may share a name.
+    qmodels: set[tuple[str, str]] = {
+        (c.file, c.name)
+        for infos in classes.values()
+        for c in infos
+        if any(is_pydantic_base(b, c.file) for b in c.bases)
+    }
+    # Fixed point: subclasses of models are models, across files. A base is resolved
+    # through the file's imports; only when that is impossible, by name.
     changed = True
     while changed:
         changed = False
-        for name, infos in classes.items():
-            if name not in models and any(_last(b) in models for c in infos for b in c.bases):
-                models.add(name)
-                changed = True
+        names = {n for _, n in qmodels}
+        for infos in classes.values():
+            for c in infos:
+                if (c.file, c.name) in qmodels:
+                    continue
+                for b in c.bases:
+                    targets = resolver.base(b, c.file)
+                    hit = _last(b) in names if targets is None else bool(targets & qmodels)
+                    if hit:
+                        qmodels.add((c.file, c.name))
+                        changed = True
+                        break
+    models = {n for _, n in qmodels}
+
+    visible: dict[str, set[str]] = {}
+    for path, syms in symbols.items():
+        seen = set(models)
+        local_names = {c.name for infos in classes.values() for c in infos if c.file == path}
+        for local in local_names | set(syms.imports):
+            targets = resolver.name(local, path)
+            if targets is None:
+                continue
+            if targets & qmodels:
+                seen.add(local)  # also covers `from x import User as U`
+            else:
+                seen.discard(local)
+        visible[path] = seen
 
     returns = {fn: m for fn, ann in raw_returns.items() if (m := _model_in_annotation(ann, models))}
-    return RepoContext(symbols, classes, models, returns)
+    return RepoContext(symbols, classes, models, returns, visible)
+
+
+class _Resolver:
+    """Resolve a name used in one file to the repository class(es) it denotes.
+
+    Returns a set of (file, class) pairs, an empty set when the name provably refers to
+    something outside the repository (e.g. `pendulum.DateTime`), or None when it cannot
+    tell (star imports, dynamic tricks): callers then fall back to matching by name.
+    """
+
+    def __init__(self, symbols: dict[str, _FileSymbols], classes: dict[str, list[_ClassInfo]]):
+        self.symbols = symbols
+        self.defined = {(c.file, c.name) for infos in classes.values() for c in infos}
+        self.by_suffix: dict[str, list[str]] = {}
+        for path in symbols:
+            parts = path.removesuffix(".py").split("/")
+            if parts[-1] == "__init__":
+                parts = parts[:-1]
+            for i in range(len(parts)):
+                self.by_suffix.setdefault(".".join(parts[i:]), []).append(path)
+
+    def module_files(self, module: str) -> list[str]:
+        return self.by_suffix.get(module, [])
+
+    def name(self, local: str, path: str, depth: int = 0) -> set[tuple[str, str]] | None:
+        if (path, local) in self.defined:
+            return {(path, local)}
+        syms = self.symbols.get(path)
+        if syms is None or local not in syms.imports:
+            return None
+        module, attr = syms.imports[local]
+        if module == "pydantic" or module.startswith("pydantic."):
+            return set()  # pydantic's own classes are handled as bases, not here
+        files = self.module_files(module)
+        if not files:
+            # `from pkg import mod` where pkg/mod.py exists is a module, not a class.
+            return None if self.module_files(f"{module}.{attr}") else set()
+        found: set[tuple[str, str]] = set()
+        unknown = False
+        for f in files:
+            if (f, attr) in self.defined:
+                found.add((f, attr))
+            elif depth < 3:  # re-exported, e.g. from a package __init__
+                sub = self.name(attr, f, depth + 1)
+                if sub is None:
+                    unknown = True
+                else:
+                    found |= sub
+            else:
+                unknown = True
+        return None if unknown and not found else found
+
+    def base(self, base: str, path: str) -> set[tuple[str, str]] | None:
+        if "." not in base:
+            return self.name(base, path)
+        head, rest = base.split(".", 1)
+        syms = self.symbols.get(path)
+        if syms is None:
+            return None
+        if head in syms.modules:
+            module = syms.modules[head]
+        elif head in syms.imports:
+            module = ".".join(syms.imports[head])  # `from pkg import mod` then `mod.Cls`
+        else:
+            return None
+        if module == "pydantic" or module.startswith("pydantic."):
+            return set()
+        mod_path, _, attr = f"{module}.{rest}".rpartition(".")
+        files = self.module_files(mod_path)
+        if not files:
+            return set()  # a class from an installed package, not this repository
+        return {(f, attr) for f in files if (f, attr) in self.defined} or None
 
 
 def _model_in_annotation(annotation: str, models: set[str]) -> str | None:
@@ -298,6 +458,8 @@ class _Detector:
         self.lines = pf.source.decode("utf-8", errors="replace").splitlines()
         self.findings: list[Finding] = []
         self._seen: dict[str, int] = {}
+        self._resolving: set[tuple[str, int]] = set()  # cycle guard: `x = x.copy()`
+        self.models = ctx.models_in(pf.path)  # model names as this file sees them
 
     # -- helpers ---------------------------------------------------------------
 
@@ -317,7 +479,7 @@ class _Detector:
         if class_node is None:
             return None
         name = text(class_node.child_by_field_name("name"))
-        return name if name in self.ctx.models else None
+        return name if name in self.models else None
 
     def add(
         self,
@@ -380,6 +542,23 @@ class _Detector:
                 (module, *module.split(".")),
             )
             return
+        if module == "pydantic.fields":
+            names = [
+                text(n.child_by_field_name("name") if n.type == "aliased_import" else n)
+                for n in node.children_by_field_name("name")
+            ]
+            gone = [n for n in names if n not in V2_FIELDS_NAMES]
+            if gone:
+                self.add(
+                    "moved-import",
+                    "Import of removed pydantic.fields internals",
+                    node,
+                    f"removed from pydantic.fields in v2: {', '.join(gone)} "
+                    "(field metadata is now `Model.model_fields[name]`, a FieldInfo)",
+                    Confidence.HIGH,
+                    ("pydantic.fields", *gone),
+                )
+            return
         if module != "pydantic":
             return
         for name_node in node.children_by_field_name("name"):
@@ -405,7 +584,7 @@ class _Detector:
         if name == "Config" and self.model_class_of(outer):
             self._config(node, outer)
             return
-        if name not in self.ctx.models:
+        if name not in self.models:
             return
         supers = node.child_by_field_name("superclasses")
         for base in supers.named_children if supers is not None else []:
@@ -594,6 +773,24 @@ class _Detector:
         if receiver is None or receiver.type in _LITERALS or self._known_non_model(receiver, call):
             return  # {"a": 1}.copy(), resp.json() with `resp: HttpResponse`: not Pydantic
         model = self._receiver_model(receiver, call)
+        # Also a repo class we can't prove is a model (dynamic base, e.g. `X.subclass()`).
+        named = _last(text(receiver)) if receiver.type in ("identifier", "attribute") else ""
+        owner = model or (named if named in self.ctx.classes else None)
+        custom = self.ctx.override(owner, method) if owner is not None else None
+        if custom is not None:
+            owner, path, line = custom
+            self.add(
+                "deprecated-method",
+                f"`.{method}()` (custom override)",
+                call,
+                f"`{owner}` defines its own `.{method}()` ({path}:{line}). Migrate that override; "
+                f"renaming this call to `.{DEPRECATED_METHODS[method].split('(')[0]}` would bypass it "
+                "(and its extra arguments may not exist there). Review by hand.",
+                Confidence.LOW,
+                (method, DEPRECATED_METHODS[method].split("(")[0]),
+                span=enclosing_statement(call),
+            )
+            return
         if model is not None:
             confidence = Confidence.HIGH
             who = f"`{text(receiver)}` is a Pydantic model ({model})"
@@ -633,7 +830,7 @@ class _Detector:
             return  # assigning to an attribute that happens to be named `json`
         receiver = node.child_by_field_name("object")
         model = self._receiver_model(receiver, node)
-        if model is None:
+        if model is None or self.ctx.override(model, method) is not None:
             return  # only when the receiver is provably a model: references are rarer, false positives costlier
         self.add(
             "deprecated-method",
@@ -672,7 +869,7 @@ class _Detector:
         if receiver.type != "identifier":
             return False
         name = text(receiver)
-        if name in self.ctx.classes and name not in self.ctx.models:
+        if name in self.ctx.classes and name not in self.models:
             return True
         scope = enclosing(call, "function_definition")
         params = scope.child_by_field_name("parameters") if scope is not None else None
@@ -683,7 +880,7 @@ class _Detector:
                 )
                 if text(pname) == text(receiver):
                     ann = _last(text(p.child_by_field_name("type")).strip("'\""))
-                    return ann in self.ctx.classes and ann not in self.ctx.models
+                    return ann in self.ctx.classes and ann not in self.models
         return False
 
     def _receiver_model(self, receiver: Node | None, call: Node) -> str | None:
@@ -691,7 +888,7 @@ class _Detector:
             return None
         rtext = text(receiver)
         if receiver.type == "identifier":
-            if rtext in self.ctx.models:
+            if rtext in self.models:
                 return rtext  # classmethod style: User.parse_obj(...)
             if rtext in ("self", "cls"):
                 return self.model_class_of(enclosing(call, "class_definition"))
@@ -702,7 +899,7 @@ class _Detector:
                 return None
             if inner.type == "identifier":
                 name = text(inner)
-                if name in self.ctx.models:
+                if name in self.models:
                     return name  # User(...).dict()
                 return self.ctx.returns.get(name)  # load_user().dict()
             if inner.type == "attribute":
@@ -712,20 +909,32 @@ class _Detector:
         if receiver.type == "subscript":
             # Page[Product].parse_obj(...): a parametrized generic model.
             value = receiver.child_by_field_name("value")
-            if value is not None and text(value) in self.ctx.models:
+            if value is not None and text(value) in self.models:
                 return text(value)
         if receiver.type == "attribute":
             # order.customer.dict(): look up the field's annotation on the owner model.
             owner = self._receiver_model(receiver.child_by_field_name("object"), call)
             attr = text(receiver.child_by_field_name("attribute"))
+            if owner is None and attr in self.models and attr[:1].isupper():
+                return attr  # schemas.responses.FlowRunResponse.from_orm(...): via a module path
             for info in self.ctx.classes.get(owner or "", []):
                 if attr in info.fields:
-                    return _model_in_annotation(info.fields[attr], self.ctx.models)
+                    return _model_in_annotation(info.fields[attr], self.models)
         return None
 
     def _binding_model(self, name: str, at: Node) -> str | None:
         """Model type of a local name: annotated parameter, `x: M = ...`, `x = M(...)`."""
         scope = enclosing(at, "function_definition") or self.pf.root
+        key = (name, scope.start_byte)
+        if key in self._resolving:
+            return None  # `flow = flow.copy()`: the name's type depends on itself
+        self._resolving.add(key)
+        try:
+            return self._binding_model_in(name, at, scope)
+        finally:
+            self._resolving.discard(key)
+
+    def _binding_model_in(self, name: str, at: Node, scope: Node) -> str | None:
         if scope.type == "function_definition":
             params = scope.child_by_field_name("parameters")
             for p in params.named_children if params is not None else []:
@@ -735,7 +944,7 @@ class _Detector:
                     )
                     if text(pname) == name:
                         return _model_in_annotation(
-                            text(p.child_by_field_name("type")), self.ctx.models
+                            text(p.child_by_field_name("type")), self.models
                         )
         loop = self._loop_variable_model(name, at, scope)
         if loop is not None:
@@ -746,7 +955,7 @@ class _Detector:
                 continue
             ann = node.child_by_field_name("type")
             if ann is not None:
-                found = _model_in_annotation(text(ann), self.ctx.models) or found
+                found = _model_in_annotation(text(ann), self.models) or found
                 continue
             right = node.child_by_field_name("right")
             if right is not None and right.type == "call":
@@ -771,7 +980,7 @@ class _Detector:
             ann = self._param_annotation(text(iterable), scope)
             if ann is not None and (m := _CONTAINER_RE.match(ann.replace(" ", ""))):
                 inner = _last(m.group(1).strip("'\""))
-                if inner in self.ctx.models:
+                if inner in self.models:
                     return inner
         return None
 
@@ -817,11 +1026,28 @@ def _scope_assignments(scope: Node) -> Iterator[Node]:
         stack.extend(reversed(node.children))
 
 
+def _analysis_error(pf: ParsedFile, exc: Exception) -> Finding:
+    return Finding(
+        id=f"{pf.path}:1:analysis-error",
+        rule="analysis-error",
+        title="File could not be fully analyzed",
+        file=pf.path,
+        line=1,
+        end_line=1,
+        snippet="",
+        message=f"The analyzer failed on this file ({type(exc).__name__}). Review it by hand.",
+        confidence=Confidence.LOW,  # reported, never auto-fixed
+    )
+
+
 def detect(files: list[ParsedFile]) -> tuple[list[Finding], list[str]]:
     """Return (findings sorted by file and line, model class names)."""
     ctx = build_context(files)
     findings: list[Finding] = []
     for pf in files:
-        findings.extend(_Detector(pf, ctx).run())
+        try:
+            findings.extend(_Detector(pf, ctx).run())
+        except Exception as exc:  # one pathological file must not sink the whole analysis
+            findings.append(_analysis_error(pf, exc))
     findings.sort(key=lambda f: (f.file, f.line, f.id))
     return findings, sorted(ctx.models)

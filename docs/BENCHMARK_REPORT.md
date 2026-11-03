@@ -319,6 +319,78 @@ superseded rows are kept in
 cannot change any successful run, because a passing state always scores
 highest.
 
+## The analyzer on large real codebases
+
+The benchmark repositories are small. To test the analyzer where it can
+break, it was run on seven open-source projects at their last Pydantic v1
+release (`benchmarks/corpus.py`, `benchmarks/corpus.toml`). The code is only
+parsed, never executed, and each project runs in its own subprocess, so a
+crash is recorded rather than ending the run.
+
+| Project | Files | Lines | Models found | HIGH | MEDIUM | LOW (report only) | Time |
+|---|---|---|---|---|---|---|---|
+| FastAPI 0.99.1 | 1,141 | 82,385 | 168 | 107 | 5 | 53 | 1.3 s |
+| SQLModel 0.0.8 | 277 | 15,022 | 28 | 18 | 20 | 20 | 0.2 s |
+| Beanie 1.20.0 | 170 | 16,700 | 41 | 26 | 19 | 5 | 0.2 s |
+| Prefect 2.10.21 | 673 | 187,421 | 405 | 275 | 48 | 296 | 2.1 s |
+| Netflix Dispatch | 639 | 65,369 | 389 | 536 | 2 | 58 | 0.8 s |
+| spaCy 3.5.4 *(held out)* | 809 | 125,438 | 23 | 23 | 0 | 21 | 1.4 s |
+| AWS Lambda Powertools 2.25.0 *(held out)* | 691 | 58,865 | 127 | 27 | 7 | 90 | 0.7 s |
+| **Total** | **4,400** | **551,200** | | | | | **6.7 s** |
+
+**Robustness.** On the first run, the analyzer crashed on Prefect. It did
+not crash on any file from the other projects. The cause was infinite
+recursion on `flow = flow.copy(...)`, where a name's type depends on itself.
+That is fixed with a cycle guard. Each file is now also isolated, so one
+pathological file becomes a LOW "could not be fully analyzed" finding
+instead of stopping the run. All 4,400 files now analyze, with no crashes
+and no analysis errors.
+
+**Precision.** Precision means: of the findings PatchPilot would act on
+(HIGH and MEDIUM), how many are real v1 → v2 problems where the suggested
+change is correct? I labelled findings by reading the code around each
+one (`results/corpus/labels.jsonl`).
+
+| Sample | True / labelled | Precision (95% interval) |
+|---|---|---|
+| **Held out**: every actionable finding in spaCy and Powertools, labelled after the fixes below, with no further changes | **57 / 57** | **100% (93.7–100%)** |
+| Development: 150 random findings from the first five projects, after the fixes | 150 / 150 | 100% (97.5–100%) |
+
+The development number is optimistic, because those five projects are
+where I found and fixed false positives. The held-out census is the
+number to quote. The earlier samples found **six false-positive patterns,
+all now fixed** and each covered by a regression test:
+
+| Pattern | Example | Fix |
+|---|---|---|
+| Two classes with the same name | Dispatch: `Service` is a Pydantic model in one module and a SQLAlchemy table in another; the table's `.dict()` was flagged | Names are resolved through each file's imports, and model identity is (file, class) |
+| A base class from an installed package | Prefect: `class DateTimeTZ(pendulum.DateTime)` matched Prefect's own Pydantic `DateTime` | A dotted base from a module outside the repository is never a repository model |
+| Calls to a custom override | Prefect's `PrefectBaseModel.dict(json_compatible=...)`: renaming to `.model_dump(json_compatible=True)` raises `TypeError` | When the class or a repository ancestor defines the method itself, the call is LOW and points at the override |
+| The same, through a module path | `schemas.responses.FlowRunResponse.from_orm(...)` | Module-path receivers resolve to the class |
+| The same, on a class with a dynamic base | `class WorkQueueResponse(WorkQueue.subclass())` | The override check runs on any repository class, not only proven models |
+| Imports that still exist | `from pydantic.fields import Field, FieldInfo` was flagged as removed | Only names that v2 actually removed are flagged, checked against the installed Pydantic 2 |
+
+The last fix also has real ground truth. The old analyzer flagged
+`from pydantic.fields import Field` in `pydantic-cli`, and the maintainers
+kept that exact line in their own v2 migration. None of the fixes changed
+a single finding on the 40 benchmark tasks, or on the two real repositories
+that PatchPilot migrates. For `pydantic-cli`, PatchPilot was re-run with the
+new analyzer.
+
+**What is not measured: recall.** Counting missed problems would need a
+ground-truth list for each project. Two signals stand in for it.
+
+* **Residual findings.** On the real repositories, PatchPilot's runs end
+  with 0 residual findings.
+* **Test-driven discovery.** Failing tests point at problems the rules don't
+  cover.
+
+**A known blind spot: re-export shims.** LangChain v0.0.300 was tried as a
+held-out project and dropped. It imports Pydantic through its own
+`langchain.pydantic_v1` module, and the analyzer does not follow such
+re-exports, so it found almost nothing. For LangChain that is right: it was
+already v2-ready. In another project the same structure would hide models.
+
 ## Cost and time
 
 | | PatchPilot | Direct prompt |

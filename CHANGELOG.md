@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.3.0: the analyzer on 551k lines of real code
+
+Ran the analyzer on seven projects at their last Pydantic v1 release:
+FastAPI, SQLModel, Beanie, Prefect, Netflix Dispatch, and held-out spaCy
+and Powertools (`benchmarks/corpus.py`). Fixes driven by what it found:
+
+* **Crash fix:** infinite recursion on `x = x.copy()` (Prefect). Each file
+  is now also isolated: an analyzer failure becomes a LOW finding for that
+  file instead of aborting the run.
+* **Import-aware model identity.** Names are resolved through each file's
+  imports (relative imports, aliases, package re-exports), so same-named
+  classes in different modules are told apart, and a base class from an
+  installed package (`pendulum.DateTime`) is never a repository model.
+* **Custom overrides.** A call to `.dict()`, `.json()`, `.from_orm()` and
+  similar is LOW (reported, not auto-fixed) when the class or a repository
+  ancestor defines that method itself. Renaming such calls would bypass the
+  override, or pass it arguments that `.model_dump()` does not accept.
+* **`pydantic.fields`** imports are flagged only for names v2 removed.
+  `Field`, `FieldInfo`, `PrivateAttr` and the rest still exist.
+* Result: 0 crashes on 4,400 files, and held-out precision 57/57. No
+  finding changed on the 40 benchmark tasks.
+
 ## v0.2.1: real-repository evaluation
 
 * **Real-repository benchmark** (`benchmarks/run_real.py`, `bench/real.py`).

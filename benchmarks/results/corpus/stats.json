@@ -1,0 +1,164 @@
+[
+  {
+    "project": "fastapi",
+    "tag": "0.99.1",
+    "crashed": false,
+    "files": 1141,
+    "lines": 82385,
+    "parse_errors": 0,
+    "model_classes": 168,
+    "findings": 165,
+    "by_confidence": {
+      "high": 107,
+      "low": 53,
+      "medium": 5
+    },
+    "by_rule": {
+      "deprecated-method": 97,
+      "config-class": 36,
+      "moved-import": 30,
+      "optional-no-default": 1,
+      "field-kwargs": 1
+    },
+    "seconds": 1.25
+  },
+  {
+    "project": "sqlmodel",
+    "tag": "0.0.8",
+    "crashed": false,
+    "files": 277,
+    "lines": 15022,
+    "parse_errors": 0,
+    "model_classes": 28,
+    "findings": 58,
+    "by_confidence": {
+      "high": 18,
+      "low": 20,
+      "medium": 20
+    },
+    "by_rule": {
+      "deprecated-method": 51,
+      "moved-import": 6,
+      "config-class": 1
+    },
+    "seconds": 0.24
+  },
+  {
+    "project": "beanie",
+    "tag": "1.20.0",
+    "crashed": false,
+    "files": 170,
+    "lines": 16700,
+    "parse_errors": 0,
+    "model_classes": 41,
+    "findings": 50,
+    "by_confidence": {
+      "high": 26,
+      "low": 5,
+      "medium": 19
+    },
+    "by_rule": {
+      "deprecated-method": 27,
+      "moved-import": 9,
+      "optional-no-default": 6,
+      "config-class": 4,
+      "parse-obj-as": 3,
+      "root-validator": 1
+    },
+    "seconds": 0.18
+  },
+  {
+    "project": "prefect",
+    "tag": "2.10.21",
+    "crashed": false,
+    "files": 673,
+    "lines": 187421,
+    "parse_errors": 0,
+    "model_classes": 405,
+    "findings": 619,
+    "by_confidence": {
+      "low": 296,
+      "high": 275,
+      "medium": 48
+    },
+    "by_rule": {
+      "deprecated-method": 414,
+      "validator": 82,
+      "parse-obj-as": 32,
+      "root-validator": 29,
+      "config-class": 28,
+      "optional-no-default": 19,
+      "moved-import": 13,
+      "custom-root": 2
+    },
+    "seconds": 2.11
+  },
+  {
+    "project": "dispatch",
+    "tag": "v20240731",
+    "crashed": false,
+    "files": 639,
+    "lines": 65369,
+    "parse_errors": 0,
+    "model_classes": 389,
+    "findings": 596,
+    "by_confidence": {
+      "high": 536,
+      "low": 58,
+      "medium": 2
+    },
+    "by_rule": {
+      "optional-no-default": 310,
+      "deprecated-method": 202,
+      "moved-import": 53,
+      "validator": 22,
+      "field-kwargs": 5,
+      "config-class": 4
+    },
+    "seconds": 0.81
+  },
+  {
+    "project": "spacy",
+    "tag": "v3.5.4",
+    "crashed": false,
+    "files": 809,
+    "lines": 125438,
+    "parse_errors": 0,
+    "model_classes": 23,
+    "findings": 44,
+    "by_confidence": {
+      "low": 21,
+      "high": 23
+    },
+    "by_rule": {
+      "deprecated-method": 23,
+      "config-class": 14,
+      "validator": 3,
+      "field-kwargs": 3,
+      "custom-root": 1
+    },
+    "seconds": 1.35
+  },
+  {
+    "project": "powertools",
+    "tag": "v2.25.0",
+    "crashed": false,
+    "files": 691,
+    "lines": 58865,
+    "parse_errors": 0,
+    "model_classes": 127,
+    "findings": 124,
+    "by_confidence": {
+      "low": 90,
+      "medium": 7,
+      "high": 27
+    },
+    "by_rule": {
+      "deprecated-method": 110,
+      "validator": 9,
+      "root-validator": 3,
+      "optional-no-default": 2
+    },
+    "seconds": 0.65
+  }
+]
