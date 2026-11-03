@@ -198,6 +198,127 @@ tokens for Haiku 5.5, $2/$10 for Sonnet 5.5) on the recorded token counts,
 ignoring cache pricing. The runs used a Claude subscription, so these are
 equivalents, not money spent.
 
+## How sure are these numbers?
+
+The counts are small, so here they are with 95% Wilson intervals and paired
+tests (`benchmarks/stats.py`). Each comparison pairs the same (task,
+repetition) across the two systems:
+
+| Claude Haiku 5.5 | PatchPilot | Direct prompt |
+|---|---|---|
+| Tier 2 | 27/27 (88–100%) | 20/27 (55–87%) |
+| Tier 3, held-out | 24/24 (86–100%) | 19/24 (60–91%) |
+| Tiers 2 + 3 | 51/51 (93–100%) | 39/51 (63–86%) |
+
+| PatchPilot vs direct prompt | Runs only PatchPilot solved / only direct solved | p, runs (McNemar) | Tasks better / worse | p, tasks (sign test) |
+|---|---|---|---|---|
+| Haiku 5.5, tiers 2 + 3 | 12 / 0 | 0.0005 | 5 / 0 | 0.06 |
+| Haiku 5.5, held-out only | 5 / 0 | 0.06 | 2 / 0 | 0.50 |
+| Sonnet 5.5, tiers 2 + 3 | 8 / 0 | 0.008 | 4 / 0 | 0.13 |
+
+How to read this:
+
+* **The direction is consistent.** Across all 171 paired runs (120 on
+  Haiku, 51 on Sonnet), PatchPilot never failed a run that the direct prompt
+  solved.
+* **The run-level test is optimistic.** Repetitions of one task are
+  correlated, so they are not independent samples. The **task-level sign
+  test is conservative**: one vote per task, with tasks where both systems
+  tie ignored. Only 5 tasks separate the systems, so it cannot reach p < 0.05
+  even with a 5–0 split. That is a limit of 17 hard tasks, not a mixed
+  result.
+* **The held-out tier alone is suggestive, not significant.** Its value is
+  that it was written after the code was frozen. Its size is too small to
+  prove a difference by itself.
+* More hard tasks would tighten every interval here. The
+  [real-repository evaluation](#real-repositories) adds tasks no one designed
+  for PatchPilot.
+
+## Real repositories
+
+The synthetic tasks were written by PatchPilot's author. This evaluation
+uses three open-source projects whose **maintainers** migrated them to
+Pydantic v2 (`benchmarks/real/*.toml`, `benchmarks/run_real.py`):
+
+| Project | What it is | Required tests | Base code passes on v2 | Maintainers' diff |
+|---|---|---|---|---|
+| `ciscosupportsdk` | API client SDK | 113 | 13 | 29 lines |
+| `okdata-permission-api` | FastAPI + Keycloak service | 28 | 0 | 74 lines |
+| `pydantic-cli` | library built on Pydantic internals | 33 | 0 | 535 lines (API redesign) |
+
+**Scoring, modelled on SWE-bench.** Each system gets the repository at the
+last commit before the migration, with its tests as they were then. Scoring
+then swaps in the maintainers' **post-migration test suite**, which no
+system ever sees. The required tests are the ones that pass on the
+maintainers' own migrated code. A run succeeds only if all of them pass on
+Pydantic v2, with deprecations raised by the package's own modules counted
+as errors. `pydantic-cli` is the exception: its maintainers changed the
+public API, so their new tests don't apply to the old code. There, the
+required tests are the base tests that passed on v1. A fourth candidate,
+`pydantic-avro`, was excluded because its new tests import a symbol that
+only the maintainers' redesign adds.
+
+Every task is re-validated before each run (`results/real/validity.json`).
+Claude Haiku 5.5, 3 repetitions (bump-pydantic is deterministic, so it ran
+once):
+
+| | PatchPilot | Direct prompt | Direct prompt + syntax guard | bump-pydantic |
+|---|---|---|---|---|
+| `ciscosupportsdk` | **3/3** | 0/3 | 3/3 | 1/1 |
+| `okdata-permission-api` | **3/3** | 0/3 | 2/3 | 1/1 |
+| `pydantic-cli` | 0/3 | 0/3 (best run 24/33 tests) | 0/3 (best 24/33) | 0/1 |
+| Lines changed, first two projects (maintainers: 29 + 74) | **15 + 54–56** | 54–117 + 85–147 | 46–115 + 74–122 | 17 + 34 |
+| Files changed that the maintainers didn't touch | **0** | 1–7 | 0–5 | 0 |
+| LLM calls per run (first two projects) | 3 + 21 | 29 + 33 | 29 + 33 | 0 |
+
+What this shows, including where it is unflattering:
+
+* **The plain direct prompt fails on real code because it rewrites
+  everything.** It sends every source file, including ones with no Pydantic
+  code at all. For several of those, Haiku put an explanation ("no changes
+  are needed…") into the file field, and the file stopped parsing. That
+  happened in all six runs.
+* **A one-line syntax guard closes most of the gap.** The *guarded* variant
+  reuses the same cached answers but keeps the original file whenever an
+  answer does not parse. It solved 5 of 6 runs on the first two projects,
+  against PatchPilot's 6 of 6. On real code, **most of the direct prompt's
+  failures were "wrote non-code"**, not "migrated wrongly". I added this
+  variant because without it, the comparison would have been against a
+  strawman.
+* **What still separates them is precision.** PatchPilot changed only files
+  the maintainers also changed, with diffs smaller than the maintainers'.
+  The guarded prompt edited up to 5 extra files per run, and its diffs
+  varied by 2.5× between repetitions of the same task.
+* **bump-pydantic matched PatchPilot on the first two projects.** Their
+  migrations were mostly mechanical (`Config` classes, `.dict()`,
+  validators), which is exactly what a rule-based codemod is for, and it
+  needs no model. These three projects do not show PatchPilot beating the
+  official tool. The synthetic tiers 2–3, where bump-pydantic solved 0/17
+  tasks, contain the patterns it can't handle.
+* **No system migrated `pydantic-cli`.** It reads Pydantic internals that v2
+  removed (`ModelField`, `field_info.extra`, the model's `Config` class), so its maintainers
+  rewrote 535 lines and changed the API. PatchPilot completes the mechanical
+  part (0 residual findings) but cannot do the redesign: its edits are
+  confined to findings and failing tests by construction. That is a real
+  limit of the design, not a tuning issue.
+* **PatchPilot is slow on large test suites.** It took about 19 minutes on
+  `okdata-permission-api`, almost all of it running the test suite in Docker
+  (baseline, patch and two repairs), against about 4 minutes for the direct
+  prompt.
+
+**A bug this evaluation found.** In the first run, PatchPilot changed 0
+lines on `pydantic-cli`, even though every edit applied. Its "keep the best
+state" step scored states by (parses, tests passed, −tests failed). The
+patch fixed the imports of 15 test modules that had failed to load, and
+their tests then failed one by one: 15 collection errors became 26 test
+failures. The scorer read that as a regression and restored the untouched
+code. Collection errors now rank worse than any number of individual
+failures (`ValidationResult.score`, with a regression test). The
+superseded rows are kept in
+`results/real/superseded-pydantic-cli-patchpilot-v0.2.0.jsonl`. The fix
+cannot change any successful run, because a passing state always scores
+highest.
+
 ## Cost and time
 
 | | PatchPilot | Direct prompt |
@@ -226,8 +347,10 @@ pricing ignored), not money spent.
 * **One migration, one model family.** Pydantic v1 → v2 only, and Claude
   models only (Haiku 5.5 for everything, Sonnet 5.5 for tiers 2–3). A
   stronger model narrows the gap a little (see the Sonnet comparison).
-* **Synthetic projects.** Realistic in shape, but small. Real repositories
-  have dependencies the sandbox would need to install.
+* **Synthetic projects, plus only three real ones.** The real-repository
+  evaluation covers 3 projects. Its main lesson is the opposite of the
+  synthetic one's: with a syntax guard, a direct prompt does nearly as well
+  on mechanical migrations, and bump-pydantic matches PatchPilot there.
 * **The no-repair ablation reuses** the full system's cached first-round
   answer within each repetition (identical prompt). That makes it a paired
   comparison of exactly the repair step, but it also means its wall time is

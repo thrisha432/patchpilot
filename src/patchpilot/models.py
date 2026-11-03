@@ -131,9 +131,25 @@ class ValidationResult(BaseModel):
     def n_failed(self) -> int:
         return sum(t.outcome in ("failed", "error") for t in self.tests)
 
-    def score(self) -> tuple[int, int, int]:
-        """Ordering for "best state so far": parses > more tests passing > fewer failing."""
-        return (int(not self.syntax_errors), self.n_passed, -self.n_failed)
+    @property
+    def n_collection_errors(self) -> int:
+        """Test modules that failed to import (each hides an unknown number of tests)."""
+        return sum(
+            t.outcome == "error"
+            and (t.nodeid == "<pytest>" or t.message.startswith("collection failure"))
+            for t in self.tests
+        )
+
+    def score(self) -> tuple[int, int, int, int]:
+        """Ordering for "best state so far": parses > more tests passing > fewer modules
+        that fail to import > fewer failing tests. A module that starts importing turns one
+        collection error into many individual failures: that is progress, not regression."""
+        return (
+            int(not self.syntax_errors),
+            self.n_passed,
+            -self.n_collection_errors,
+            -self.n_failed,
+        )
 
 
 class LLMUsage(BaseModel):

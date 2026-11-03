@@ -58,7 +58,7 @@ class _State:
     report: RunReport
     workspace: Workspace | None = None
     originals: dict[str, str] = field(default_factory=dict)  # file -> original content
-    best: tuple[tuple[int, int, int], int | None, str] | None = None  # (score, round, commit)
+    best: tuple[tuple[int, ...], int | None, str] | None = None  # (score, round, commit)
 
 
 class Orchestrator:

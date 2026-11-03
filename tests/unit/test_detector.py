@@ -301,3 +301,26 @@ def test_gaps_found_by_the_tier2_benchmark(make_repo, profile):
     assert (17, "deprecated-method", "high") in got  # handler = c.json (task 31)
     assert (18, "deprecated-method", "high") in got  # Page[C] return annotation (task 32)
     assert not any(line == 19 for line, _, _ in got)  # Snapshot is not a model (task 25)
+
+
+def test_analyzer_survives_code_that_crashed_tree_sitter_0_26(tmp_path):
+    """tree-sitter 0.26.0 segfaulted inside the analyzer on this real-world file
+    (found by the real-repository evaluation). Run in a subprocess so a crash fails
+    this test instead of killing pytest. tree-sitter is pinned below 0.26."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    src = Path(__file__).parents[1] / "fixtures" / "ts026_crash_case.py.txt"
+    target = tmp_path / "pkg" / "case.py"
+    target.parent.mkdir()
+    target.write_bytes(src.read_bytes())
+    code = (
+        "import sys; from pathlib import Path; "
+        "from patchpilot.analyzer.analyzer import analyze; from patchpilot.profiles import get_profile; "
+        "print(len(analyze(Path(sys.argv[1]), get_profile('pydantic-v2')).findings))"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-I", "-c", code, str(target.parent)], capture_output=True, text=True
+    )
+    assert proc.returncode == 0, f"analyzer crashed (exit {proc.returncode}): {proc.stderr[-500:]}"

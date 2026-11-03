@@ -84,9 +84,14 @@ def main() -> int:
                     try:
                         if system == "bump-pydantic":
                             result = run_bump_pydantic(repo, args.bump_pydantic)
-                        elif system == "direct-llm":
+                        elif system.startswith("direct-llm"):
                             assert provider is not None
-                            result = run_direct(repo, profile, provider[rep])
+                            result = run_direct(
+                                repo,
+                                profile,
+                                provider[rep],
+                                syntax_guard=system.endswith("guarded"),
+                            )
                         else:
                             assert provider is not None
                             result = run_patchpilot(

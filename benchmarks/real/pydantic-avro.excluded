@@ -1,0 +1,12 @@
+id = "real-pydantic-avro"
+title = "pydantic-avro: generate Avro schemas from Pydantic models"
+repo = "https://github.com/godatadriven/pydantic-avro"
+license = "MIT"
+base = "e12f665c8cb0c7a796ebab53a9e2fb22cebf5fe0"
+migration = "c7aa47ab8a57fe506f4d17730225e1fc958aca6d"  # "Add support for pydantic v2"
+package = "pydantic_avro"
+pythonpath = "/work/src"
+v1_requirements = "pydantic==1.10.27 pytest==8.4.2 pytest-mock==3.14.0 fastavro==1.9.7 avro==1.11.3"
+v2_requirements = "pydantic==2.14.2 pydantic-settings==2.16.2 pytest==8.4.2 pytest-mock==3.14.0 fastavro==1.9.7 avro==1.11.3"
+# Score against the maintainers post-migration test suite (SWE-bench style; never shown to systems).
+target_tests = "migration"

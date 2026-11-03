@@ -31,3 +31,6 @@ htmlcov/
 
 # Local scratch output from `patchpilot migrate --report/--json`
 /reports/
+
+# cloned real-world repositories (fetched at run time, not vendored)
+benchmarks/.real-cache/

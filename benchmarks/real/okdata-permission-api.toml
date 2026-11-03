@@ -1,0 +1,25 @@
+id = "real-okdata-permission-api"
+title = "okdata-permission-api: FastAPI permission service of Oslo's data platform (Oslo kommune)"
+repo = "https://github.com/oslokommune/okdata-permission-api"
+license = "MIT"
+base = "385421eb5c304648257fab527fd6003d111532d2"       # first parent of the merge "pydantic-2"
+migration = "10aedc3036d2bfe1e109b02b095b21a1f12bf3e5"  # merge of the maintainers' Pydantic 2 branch
+package = "models|resources|dataplatform_keycloak|jobs|app"
+pythonpath = "/work"
+target_tests = "migration"
+# The maintainers' pinned requirements at each commit, plus the test deps from their tox.ini.
+v1_requirements = "annotated-doc==0.0.3 anyio==4.14.2 attrs==21.4.0 aws-xray-sdk==2.14.0 boto3==1.42.79 botocore==1.42.79 certifi==2024.7.4 cffi==2.0.0 charset-normalizer==2.0.12 cryptography==50.0.0 deprecation==2.1.0 dnspython==2.6.1 email-validator==1.2.1 fastapi==0.120.2 idna==3.15 jmespath==1.0.0 jsonschema==4.6.0 jwcrypto==1.5.7 mangum==0.15.0 okdata-aws==6.0.0 okdata-resource-auth==0.1.4 okdata-sdk==3.4.0 packaging==26.0 pycparser==2.21 pydantic[email]==1.10.22 pyjwt==2.15.0 pyrsistent==0.18.1 python-dateutil==2.8.2 python-keycloak==3.12.0 requests==2.33.0 requests-toolbelt==1.0.0 s3transfer==0.16.0 six==1.16.0 sniffio==1.2.0 starlette==0.49.3 structlog==21.5.0 typing-extensions==4.14.1 urllib3==2.8.0 wrapt==1.14.1 freezegun httpx moto pytest pytest-mock"
+v2_requirements = "annotated-doc==0.0.3 annotated-types==0.8.0 anyio==4.14.2 attrs==21.4.0 aws-xray-sdk==2.14.0 boto3==1.42.79 botocore==1.42.79 certifi==2024.7.4 cffi==2.0.0 charset-normalizer==2.0.12 cryptography==50.0.0 deprecation==2.1.0 dnspython==2.8.0 email-validator==2.3.0 fastapi==0.141.1 idna==3.15 jmespath==1.0.0 jsonschema==4.6.0 jwcrypto==1.5.7 mangum==0.15.0 okdata-aws==6.0.0 okdata-resource-auth==0.1.4 okdata-sdk==3.4.0 packaging==26.0 pycparser==2.21 pydantic[email]==2.13.4 pydantic-core==2.46.4 pyjwt==2.15.0 pyrsistent==0.18.1 python-dateutil==2.8.2 python-keycloak==3.12.0 requests==2.33.0 requests-toolbelt==1.0.0 s3transfer==0.16.0 six==1.16.0 starlette==1.6.0 structlog==21.5.0 typing-extensions==4.16.0 typing-inspection==0.4.4 urllib3==2.8.0 wrapt==1.14.1 freezegun httpx moto pytest pytest-mock"
+
+[env]  # the project's own tox.ini setenv (mock credentials; no network in the sandbox)
+AWS_ACCESS_KEY_ID = "mock"
+AWS_SECRET_ACCESS_KEY = "mock"
+AWS_XRAY_SDK_ENABLED = "false"
+AWS_REGION = "eu-west-1"
+KEYCLOAK_SERVER = "http://localhost:35789"
+KEYCLOAK_REALM = "localtest"
+KEYCLOAK_TEAM_ADMIN_USERNAME = "team-admin"
+RESOURCE_SERVER_CLIENT_ID = "okdata-resource-server"
+CLIENT_ID = "okdata-permission-api"
+SERVICE_NAME = "okdata-permission-api"
+BACKUP_BUCKET_NAME = "backup-bucket"

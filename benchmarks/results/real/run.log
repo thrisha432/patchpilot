@@ -1,0 +1,24 @@
+ok  real-ciscosupportsdk     required=113  base-on-v2=13   maintainers-pass-all=True findings=3
+ok  real-okdata-permission-api required=28   base-on-v2=0    maintainers-pass-all=True findings=18
+ok  real-pydantic-cli        required=33   base-on-v2=0    maintainers-pass-all=False findings=15
+rep0 real-ciscosupportsdk     patchpilot     PASS 113/113 residual=0 calls=3 17.5s 
+rep0 real-ciscosupportsdk     direct-llm     fail 0/113 residual=0 calls=29 230.0s syntax: examples/eox.py:1: unterminated string literal (detected at line 1)
+rep0 real-ciscosupportsdk     bump-pydantic  PASS 113/113 residual=0 calls=0 9.0s 
+rep0 real-okdata-permission-api patchpilot     PASS 28/28 residual=0 calls=21 1123.4s 
+rep0 real-okdata-permission-api direct-llm     fail 0/28 residual=0 calls=33 244.8s syntax: jobs/backup.py:1: invalid syntax
+rep0 real-okdata-permission-api bump-pydantic  PASS 28/28 residual=7 calls=0 255.9s 
+rep0 real-pydantic-cli        patchpilot     fail 0/33 residual=15 calls=16 187.5s 
+rep0 real-pydantic-cli        direct-llm     fail 24/33 residual=2 calls=22 264.5s pydantic_cli.tests.test_examples_simple_with_json_config_not_found.TestExamples::test_simp
+rep0 real-pydantic-cli        bump-pydantic  fail 0/33 residual=14 calls=0 7.0s 
+rep1 real-ciscosupportsdk     patchpilot     PASS 113/113 residual=0 calls=3 20.8s 
+rep1 real-ciscosupportsdk     direct-llm     fail 0/113 residual=0 calls=29 288.8s syntax: docs/conf.py:1: invalid syntax
+rep1 real-okdata-permission-api patchpilot     PASS 28/28 residual=0 calls=21 1128.0s 
+rep1 real-okdata-permission-api direct-llm     fail 0/28 residual=0 calls=33 224.5s syntax: dataplatform_keycloak/ssm.py:1: invalid syntax
+rep1 real-pydantic-cli        patchpilot     fail 0/33 residual=15 calls=16 178.3s 
+rep1 real-pydantic-cli        direct-llm     fail 0/33 residual=2 calls=22 257.5s syntax: pydantic_cli/__init__.py:1: unexpected character after line continuation character
+rep2 real-ciscosupportsdk     patchpilot     PASS 113/113 residual=0 calls=3 18.9s 
+rep2 real-ciscosupportsdk     direct-llm     fail 0/113 residual=0 calls=29 248.8s syntax: examples/suggestion.py:1: unterminated string literal (detected at line 1)
+rep2 real-okdata-permission-api patchpilot     PASS 28/28 residual=0 calls=21 1128.4s 
+rep2 real-okdata-permission-api direct-llm     fail 0/28 residual=0 calls=33 228.0s syntax: dataplatform_keycloak/jwt.py:1: unterminated string literal (detected at line 1)
+rep2 real-pydantic-cli        patchpilot     fail 0/33 residual=15 calls=16 179.6s 
+rep2 real-pydantic-cli        direct-llm     fail 0/33 residual=2 calls=22 235.7s 

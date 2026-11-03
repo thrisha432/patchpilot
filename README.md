@@ -60,9 +60,36 @@ repetitions per task:
   were solved through test-driven discovery: the failing baseline test
   located the code.
 * **The honest caveats:** on easy tasks a plain prompt does just as well. I
-  wrote the tasks myself. The benchmark is 40 tasks of one migration. Read
-  the [limitations](docs/BENCHMARK_REPORT.md#limitations-read-these-before-quoting-a-number)
-  before quoting a number.
+  wrote the synthetic tasks myself. Only 5 hard tasks separate the systems:
+  PatchPilot was never worse on any run (12–0 on Haiku, p = 0.0005 at run
+  level), but a conservative task-level test gives p = 0.06.
+  [Uncertainty](docs/BENCHMARK_REPORT.md#how-sure-are-these-numbers) and
+  [limitations](docs/BENCHMARK_REPORT.md#limitations-read-these-before-quoting-a-number)
+  are in the report.
+
+### On real open-source repositories
+
+Three projects whose maintainers migrated to v2, scored SWE-bench style
+against the **maintainers' post-migration tests**, which no system sees
+(Haiku 5.5, 3 repetitions):
+
+| | PatchPilot | Direct prompt | Direct + syntax guard | bump-pydantic |
+|---|---|---|---|---|
+| API client SDK (113 tests) | **3/3** | 0/3 | 3/3 | 1/1 |
+| FastAPI service (28 tests) | **3/3** | 0/3 | 2/3 | 1/1 |
+| Library built on Pydantic internals (API redesign) | 0/3 | 0/3 | 0/3 | 0/1 |
+
+* PatchPilot's diffs were smaller than the maintainers', and it never
+  touched a file they didn't. The direct prompt broke files that had no
+  Pydantic code at all.
+* **Unflattering, and reported anyway:** with a one-line "keep the file if
+  the answer doesn't parse" guard, the direct prompt nearly matches
+  PatchPilot. bump-pydantic matches it on these mechanical migrations. No
+  system can do an API redesign. PatchPilot took 19 minutes on the service,
+  mostly running its tests.
+* The evaluation also found a bug in PatchPilot's best-state selection,
+  which is now fixed and has a regression test.
+  [Details](docs/BENCHMARK_REPORT.md#real-repositories).
 
 Full method, every table, and per-task results:
 [**docs/BENCHMARK_REPORT.md**](docs/BENCHMARK_REPORT.md).

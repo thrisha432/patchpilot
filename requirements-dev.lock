@@ -60,7 +60,7 @@ sortedcontainers==2.4.0
 starlette==1.10.0
 tomli==2.5.0
 tomli_w==1.2.0
-tree-sitter==0.26.0
+tree-sitter==0.25.2
 tree-sitter-python==0.25.0
 typer==0.27.3
 typing-inspection==0.4.4

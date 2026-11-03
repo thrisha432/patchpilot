@@ -248,3 +248,21 @@ def test_report_renders_everything(make_repo, profile):
     ):
         assert expected in md
     assert json.loads(to_json(report))["status"] == "success"
+
+
+def test_score_prefers_importing_modules_over_fewer_failures():
+    # Found on a real repository: fixing imports turned 15 collection errors into 26
+    # individual failures, and the old ordering called that a regression.
+    collection = [
+        TestOutcome(nodeid=f"tests.test_{i}", outcome="error", message="collection failure\nE ...")
+        for i in range(15)
+    ]
+    imported = [
+        TestOutcome(nodeid=f"tests/test_{i}.py::test_{j}", outcome="failed")
+        for i in range(13)
+        for j in range(2)
+    ]
+    before = ValidationResult(stage="tests", passed=False, tests=collection)
+    after = ValidationResult(stage="tests", passed=False, tests=imported)
+    assert before.n_collection_errors == 15 and after.n_collection_errors == 0
+    assert after.score() > before.score()

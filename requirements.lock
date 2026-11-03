@@ -17,7 +17,7 @@ Pygments==2.21.0
 rich==15.0.0
 shellingham==1.5.4
 starlette==1.10.0
-tree-sitter==0.26.0
+tree_sitter==0.25.2
 tree-sitter-python==0.25.0
 typer==0.27.3
 typing-inspection==0.4.4

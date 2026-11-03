@@ -1,0 +1,9 @@
+{
+  "real-pydantic-cli": {
+    "required": 33,
+    "base_passing_on_v2": 0,
+    "reference_passes_all": false,
+    "reference_lines_changed": 535,
+    "findings": 15
+  }
+}

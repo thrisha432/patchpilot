@@ -1,0 +1,261 @@
+# Regression fixture: this real-world file segfaulted tree-sitter 0.26.0 inside the analyzer
+# (minimized from tests/test_to_avro.py of godatadriven/pydantic-avro @ e12f665, MIT License,
+# Copyright (c) 2022 godatadriven). Parsed only, never imported or executed.
+        c4=4,
+        c5=5,
+        c6=6,
+        c7=7,
+        c8=True,
+        c9=uuid.uuid4(),
+        c10=uuid.uuid4(),
+        c11={"key": "value"},
+        c12={},
+        c13=Status.passed,
+        c14=bytes(),
+    )
+
+    parsed_schema = parse_schema(TestModel.avro_schema())
+
+    # 'records' can be an iterable (including generator)
+    records = [
+        record1.dict(),
+    ]
+
+    with tempfile.TemporaryDirectory() as dir:
+        # Writing
+        with open(os.path.join(dir, "test.avro"), "wb") as out:
+            writer(out, parsed_schema, records)
+
+        result_records = []
+        # Reading
+        with open(os.path.join(dir, "test.avro"), "rb") as fo:
+            for record in reader(fo):
+                result_records.append(TestModel.parse_obj(record))
+    assert records == result_records
+
+
+def test_reused_object():
+                                "type": "record",
+                            },
+                        }
+                    ],
+                    "name": "NestedModel",
+                    "type": "record",
+                },
+            },
+            {
+                "name": "c3",
+                "type": {
+                    "items": "NestedModel",
+                    "type": "array",
+                },
+            },
+            {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
+            {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
+            {"name": "c6", "type": ["null", "string", "long", "NestedModel"]},
+        ],
+    }
+
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 6
+
+
+def test_avro_parse_list_of_lists():
+    record = ListofLists(c1=1, c2=[2, 3], c3=[[4, 5], [6, 7]])
+
+    schema = ListofLists.avro_schema()
+    parsed_schema = parse_schema(schema)
+
+    records = [
+        record.dict(),
+    ]
+
+    with tempfile.TemporaryDirectory() as dir:
+        # Writing
+        with open(os.path.join(dir, "test.avro"), "wb") as out:
+            writer(out, parsed_schema, records)
+
+        result_records = []
+        # Reading
+        with open(os.path.join(dir, "test.avro"), "rb") as fo:
+            for record in reader(fo):
+                result_records.append(ListofLists.parse_obj(record))
+    assert records == result_records
+
+
+def test_avro_write_complex():
+    record1 = ComplexTestModel(
+        c1=["1", "2"],
+        c2=NestedModel(c11=Nested2Model(c111="test")),
+        c3=[NestedModel(c11=Nested2Model(c111="test"))],
+        c4=[1, 2, 3, 4],
+        c5={"key": NestedModel(c11=Nested2Model(c111="test"))},
+    )
+
+    parsed_schema = parse_schema(ComplexTestModel.avro_schema())
+
+    # 'records' can be an iterable (including generator)
+    records = [
+        record1.dict(),
+    ]
+
+    with tempfile.TemporaryDirectory() as dir:
+        # Writing
+        with open(os.path.join(dir, "test.avro"), "wb") as out:
+            writer(out, parsed_schema, records)
+
+        result_records = []
+        # Reading
+        with open(os.path.join(dir, "test.avro"), "rb") as fo:
+            for record in reader(fo):
+                result_records.append(ComplexTestModel.parse_obj(record))
+    assert records == result_records
+
+
+def test_defaults():
+    result = DefaultValues.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "DefaultValues",
+        "name": "DefaultValues",
+        "fields": [
+            {"name": "c1", "type": "string", "default": "test"},
+            {"name": "c2", "type": ["null", "string"], "default": None},
+            {"name": "c3", "type": "string", "default": "test"},
+            # pydantic .schema has no idea c3 can take None, so we do not allow it here either
+        ],
+    }
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 3
+
+
+def test_custom_namespace():
+    # if given namespace should change namespace in avro schema
+    result = DefaultValues.avro_schema(namespace="test.test")
+    assert result["namespace"] == "test.test"
+
+    # if not given namespace should be same as name of the avro schema
+    result = DefaultValues.avro_schema()
+    assert result["namespace"] == result["name"]
+
+
+def test_model_with_alias():
+    result = ModelWithAliases.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "ModelWithAliases",
+        "name": "ModelWithAliases",
+        "fields": [{"type": "string", "name": "Field"}],
+    }
+
+    result = ModelWithAliases.avro_schema(by_alias=False)
+    assert result == {
+        "type": "record",
+        "namespace": "ModelWithAliases",
+        "name": "ModelWithAliases",
+        "fields": [
+            {"type": "string", "name": "field"},
+        ],
+    }
+
+
+def test_union_avro():
+    result = ModelWithUnion.avro_schema()
+    assert result == {
+        "fields": [
+            {
+                "name": "c1",
+                "type": [
+                    "null",
+                    "string",
+                    "long",
+                    {
+                        "fields": [
+                            {
+                                "name": "c11",
+                                "type": {
+                                    "fields": [{"name": "c111", "type": "string"}],
+                                    "name": "Nested2Model",
+                                    "type": "record",
+                                },
+                            }
+                        ],
+                        "name": "NestedModel",
+                        "type": "record",
+                    },
+                ],
+            },
+            {
+                "name": "c2",
+                "type": [
+                    "null",
+                    "string",
+                    "long",
+                    "NestedModel",
+                ],
+            },
+            {
+                "name": "c3",
+                "type": [
+                    "string",
+                    "long",
+                    "NestedModel",
+                ],
+            },
+        ],
+        "name": "ModelWithUnion",
+        "namespace": "ModelWithUnion",
+        "type": "record",
+    }
+
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 3
+
+
+class OptionalArray(AvroBase):
+    c1: Optional[List[str]]
+
+
+def test_optional_array():
+    result = OptionalArray.avro_schema()
+
+    assert result == {
+        "type": "record",
+        "namespace": "OptionalArray",
+        "name": "OptionalArray",
+        "fields": [{"type": ["null", {"type": "array", "items": {"type": "string"}}], "name": "c1", "default": None}],
+    }
+
+
+class IntModel(AvroBase):
+    c1: int = Field(..., ge=-(2**31), le=(2**31 - 1))
+
+
+def test_int():
+    result = IntModel.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "IntModel",
+        "name": "IntModel",
+        "fields": [{"type": "int", "name": "c1"}],
+    }
+
+
+class CustomNameModel(AvroBase):
+    c1: int
+
+    class Config:
+        title = "some_other_name"
+
+
+def test_custom_name():
+    result = CustomNameModel.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "some_other_name",
+        "name": "some_other_name",
+        "fields": [{"type": "long", "name": "c1"}],
+    }

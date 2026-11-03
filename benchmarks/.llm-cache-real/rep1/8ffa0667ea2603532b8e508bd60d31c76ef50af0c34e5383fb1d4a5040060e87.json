@@ -1,0 +1,1 @@
+{"text": "{\"content\": \"import os\\n\\nfrom mangum import Mangum\\n\\nfrom app import app\\n\\nroot_path = os.environ[\\\"ROOT_PATH\\\"]\\nhandler = Mangum(app=app, api_gateway_base_path=root_path)\\n\"}", "usage": {"calls": 1, "prompt_tokens": 1492, "completion_tokens": 444, "seconds": 5.914, "errors": 0, "cost_usd": 0.00050164}}

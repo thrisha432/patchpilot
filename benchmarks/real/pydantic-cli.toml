@@ -1,0 +1,13 @@
+id = "real-pydantic-cli"
+title = "pydantic-cli: build argparse CLIs from Pydantic models (uses Pydantic internals)"
+repo = "https://github.com/mpkocher/pydantic-cli"
+license = "MIT"
+base = "d67ab8b265fd9ed045d27ecd904a04b8185481fa"       # parent of the maintainers' dependency bump
+migration = "3e4c6a09f3afc207312f8001e075d4fc4713033d"  # "Update core to use Pydantic 2"
+package = "pydantic_cli"
+pythonpath = "/work"
+v1_requirements = "pydantic==1.10.27 pytest==8.4.2"
+v2_requirements = "pydantic==2.14.2 pydantic-settings==2.16.2 pytest==8.4.2"
+# The maintainers redesigned the public API (removed DefaultConfig), so their new tests describe a
+# different library. Target: every test that passed on v1 at the base commit still passes on v2.
+target_tests = "base"

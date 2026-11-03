@@ -7,11 +7,14 @@
                                "migrate this file", whole-file answer applied as-is.
                                No analysis, no docs, no validation (what a developer
                                gets from a chat window).
+* ``direct-llm-guarded``       the same answers, but a rewritten file is kept only if it
+                               still parses (a guard any careful engineer would add)
 * ``bump-pydantic``            Pydantic's official rule-based codemod (no LLM)
 """
 
 from __future__ import annotations
 
+import ast
 import shutil
 import subprocess
 import time
@@ -32,6 +35,7 @@ SYSTEMS = (
     "patchpilot-no-retrieval",
     "patchpilot-no-repair",
     "direct-llm",
+    "direct-llm-guarded",
     "bump-pydantic",
 )
 LLM_SYSTEMS = frozenset(s for s in SYSTEMS if s != "bump-pydantic")
@@ -73,7 +77,9 @@ def run_patchpilot(
     )
 
 
-def run_direct(repo: Path, profile: Profile, provider: LLMProvider) -> SystemResult:
+def run_direct(
+    repo: Path, profile: Profile, provider: LLMProvider, *, syntax_guard: bool = False
+) -> SystemResult:
     started = time.monotonic()
     usage = LLMUsage()
     errors = []
@@ -95,6 +101,12 @@ def run_direct(repo: Path, profile: Profile, provider: LLMProvider) -> SystemRes
         if content is None:
             errors.append(f"{f.path}: {err}")
             continue
+        if syntax_guard:
+            try:
+                ast.parse(content)
+            except SyntaxError as exc:
+                errors.append(f"{f.path}: kept original, answer does not parse ({exc.msg})")
+                continue
         f.abspath.write_text(
             content if content.endswith("\n") else content + "\n", encoding="utf-8"
         )

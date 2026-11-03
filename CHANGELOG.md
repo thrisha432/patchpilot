@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.2.1: real-repository evaluation
+
+* **Real-repository benchmark** (`benchmarks/run_real.py`, `bench/real.py`).
+  Three open-source projects at their pre-migration commit, scored
+  against the maintainers' post-migration tests. Systems never see those
+  tests. Deprecations count as errors only when raised from the package's
+  own modules.
+* **Fix: best-state selection** (`ValidationResult.score`). Test modules
+  that fail to import now rank worse than any number of failing tests.
+  Before, fixing imports that let 15 modules load (and their tests fail
+  individually) looked like a regression, and PatchPilot restored the
+  original code.
+* **New baseline `direct-llm-guarded`.** It is the direct prompt, but it
+  keeps a file unchanged when the answer does not parse. This keeps the
+  comparison fair: on real code, most of the plain prompt's failures were
+  non-code answers.
+* **Uncertainty** (`benchmarks/stats.py`): Wilson intervals, an exact
+  McNemar test and a task-level sign test.
+* tree-sitter pinned below 0.26: 0.26.0 segfaults on some real files. A
+  regression test covers this.
+
 ## v0.2: changes driven by the tier-2 benchmark
 
 The frozen v0.1 run on tier 2 (harder, more realistic tasks) solved 12/27

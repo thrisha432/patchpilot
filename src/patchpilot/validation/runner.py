@@ -111,6 +111,9 @@ class DockerValidator:
     extra_test_dirs: list[Path] = field(
         default_factory=list
     )  # mounted read-only, e.g. hidden tests
+    # Explicit variables for the container (e.g. PYTHONPATH for a src/ layout).
+    # Never copied from the host environment.
+    env: dict[str, str] = field(default_factory=dict)
 
     def command(self, workspace: Path, out_dir: Path, name: str) -> list[str]:
         cmd = [
@@ -128,6 +131,8 @@ class DockerValidator:
             "-v", f"{workspace}:/work:ro",
             "-v", f"{out_dir}:/out:rw",
         ]  # fmt: skip
+        for key, value in sorted(self.env.items()):
+            cmd += ["-e", f"{key}={value}"]
         targets: list[str] = []
         for i, d in enumerate(self.extra_test_dirs):
             cmd += ["-v", f"{d.resolve()}:/extra{i}:ro"]
