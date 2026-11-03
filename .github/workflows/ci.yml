@@ -41,7 +41,7 @@ jobs:
       - name: Validate every benchmark task (v1 passes, v2 fails, reference passes)
         if: matrix.python-version == '3.12'
         run: python benchmarks/validate_tasks.py
-      - name: Tests (no network LLM calls: the model is scripted in tests)
+      - name: "Tests (no network LLM calls; the model is scripted in tests)"
         run: pytest --cov --cov-report=term --cov-report=xml
       - uses: actions/upload-artifact@v5
         if: matrix.python-version == '3.12'
