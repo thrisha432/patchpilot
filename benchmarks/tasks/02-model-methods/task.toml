@@ -1,0 +1,5 @@
+id = "02-model-methods"
+title = "dict/json/parse_obj/parse_raw/copy"
+difficulty = "easy"
+tier = 1
+patterns = ["deprecated-method"]

@@ -1,0 +1,5 @@
+id = "22-moved-errors-import"
+title = "Imports from removed pydantic submodules"
+difficulty = "easy"
+tier = 1
+patterns = ["moved-import"]

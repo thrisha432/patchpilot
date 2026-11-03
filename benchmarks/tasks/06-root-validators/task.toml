@@ -1,0 +1,5 @@
+id = "06-root-validators"
+title = "@root_validator (pre and post)"
+difficulty = "medium"
+tier = 1
+patterns = ["root-validator"]

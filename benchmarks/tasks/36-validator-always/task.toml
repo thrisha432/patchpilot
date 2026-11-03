@@ -1,0 +1,5 @@
+id = "36-validator-always"
+title = "@validator(always=True) filling defaults, each_item on dict values"
+difficulty = "hard"
+tier = 3
+patterns = ["validator"]

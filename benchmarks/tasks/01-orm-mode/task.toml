@@ -1,0 +1,5 @@
+id = "01-orm-mode"
+title = "ORM mode and from_orm"
+difficulty = "easy"
+tier = 1
+patterns = ["config-class", "from_orm"]

@@ -1,0 +1,5 @@
+id = "37-alias-generator"
+title = "camelCase API via alias_generator and json(by_alias=True)"
+difficulty = "medium"
+tier = 3
+patterns = ["config-class", "deprecated-method"]

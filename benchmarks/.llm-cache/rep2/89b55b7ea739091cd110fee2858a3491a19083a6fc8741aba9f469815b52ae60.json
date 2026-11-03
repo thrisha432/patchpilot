@@ -1,0 +1,1 @@
+{"text": "{\"content\": \"from typing import List\\n\\nfrom pydantic import BaseModel\\n\\n\\nclass Order(BaseModel):\\n    id: int\\n    items: List[str]\\n    total: float\\n\"}", "usage": {"calls": 1, "prompt_tokens": 1475, "completion_tokens": 430, "seconds": 3.37, "errors": 0, "cost_usd": 0.0004922700000000001}}

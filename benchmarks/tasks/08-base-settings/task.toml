@@ -1,0 +1,5 @@
+id = "08-base-settings"
+title = "BaseSettings moved to pydantic-settings"
+difficulty = "medium"
+tier = 1
+patterns = ["moved-import", "config-class", "field-kwargs"]

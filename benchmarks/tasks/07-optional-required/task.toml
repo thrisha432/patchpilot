@@ -1,0 +1,5 @@
+id = "07-optional-required"
+title = "Optional fields without defaults (silent semantic change)"
+difficulty = "medium"
+tier = 1
+patterns = ["optional-no-default"]

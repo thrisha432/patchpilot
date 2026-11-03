@@ -1,0 +1,1 @@
+{"text": "{\"content\": \"from typing import Generic, List, TypeVar\\n\\nfrom pydantic import BaseModel\\n\\nT = TypeVar(\\\"T\\\")\\n\\n\\nclass Page(BaseModel, Generic[T]):\\n    items: List[T]\\n    page: int\\n    pages: int\\n\"}", "usage": {"calls": 1, "prompt_tokens": 1486, "completion_tokens": 126, "seconds": 2.497, "errors": 0, "cost_usd": 0.004027500000000001}}

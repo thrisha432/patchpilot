@@ -1,0 +1,5 @@
+id = "09-custom-root"
+title = "Custom root type (__root__) to RootModel"
+difficulty = "hard"
+tier = 1
+patterns = ["custom-root", "deprecated-method"]

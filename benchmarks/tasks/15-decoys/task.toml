@@ -1,0 +1,5 @@
+id = "15-decoys"
+title = "Look-alike non-Pydantic .json()/.copy()/.dict() methods must not change"
+difficulty = "medium"
+tier = 1
+patterns = ["deprecated-method", "precision"]

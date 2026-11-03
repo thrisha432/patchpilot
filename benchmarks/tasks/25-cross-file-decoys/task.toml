@@ -1,0 +1,5 @@
+id = "25-cross-file-decoys"
+title = "Look-alike .dict()/.parse_obj() on non-Pydantic classes, types known only from other files"
+difficulty = "hard"
+tier = 2
+patterns = ["deprecated-method", "precision", "cross-file"]

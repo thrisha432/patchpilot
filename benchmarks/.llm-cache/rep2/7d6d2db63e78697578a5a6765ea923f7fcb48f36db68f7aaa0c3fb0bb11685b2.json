@@ -1,0 +1,1 @@
+{"text": "{\"content\": \"from typing import Optional\\n\\nfrom app.core.base import Entity\\n\\n\\nclass Book(Entity):\\n    title: str\\n    author: str\\n    isbn: Optional[str] = None\\n\\n\\nclass Ebook(Book):\\n    file_size_kb: int\\n\"}", "usage": {"calls": 1, "prompt_tokens": 1502, "completion_tokens": 667, "seconds": 4.626, "errors": 0, "cost_usd": 0.00061406}}

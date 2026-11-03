@@ -1,0 +1,5 @@
+id = "33-pydantic-dataclasses"
+title = "pydantic.dataclasses with Config and __post_init_post_parse__"
+difficulty = "medium"
+tier = 3
+patterns = ["dataclass", "config-class"]

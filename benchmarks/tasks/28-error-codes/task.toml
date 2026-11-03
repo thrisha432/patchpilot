@@ -1,0 +1,5 @@
+id = "28-error-codes"
+title = "API error codes derived from v1 error message text"
+difficulty = "hard"
+tier = 2
+patterns = ["semantic-only", "validator"]

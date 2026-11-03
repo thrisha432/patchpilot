@@ -1,0 +1,5 @@
+id = "18-validate-arguments"
+title = "@validate_arguments to @validate_call"
+difficulty = "easy"
+tier = 1
+patterns = ["moved-import"]

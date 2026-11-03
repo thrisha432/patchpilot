@@ -1,0 +1,5 @@
+id = "27-union-smart-mode"
+title = "Union[int, str] coercion order changed (v2 'smart' unions)"
+difficulty = "hard"
+tier = 2
+patterns = ["semantic-only", "deprecated-method"]

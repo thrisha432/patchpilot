@@ -1,0 +1,5 @@
+id = "34-const-discriminator"
+title = "Field(const=True) event discriminators"
+difficulty = "medium"
+tier = 3
+patterns = ["field-kwargs"]

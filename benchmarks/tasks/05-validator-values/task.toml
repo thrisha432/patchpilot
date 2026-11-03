@@ -1,0 +1,5 @@
+id = "05-validator-values"
+title = "@validator using values"
+difficulty = "medium"
+tier = 1
+patterns = ["validator"]

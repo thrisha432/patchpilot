@@ -1,0 +1,5 @@
+id = "31-method-references"
+title = "Deprecated methods passed as references (map, sorted key, callbacks)"
+difficulty = "hard"
+tier = 2
+patterns = ["deprecated-method"]

@@ -1,0 +1,5 @@
+id = "16-json-schema"
+title = "schema()/schema_json() and schema_extra"
+difficulty = "medium"
+tier = 1
+patterns = ["deprecated-method", "config-class"]

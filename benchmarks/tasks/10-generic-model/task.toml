@@ -1,0 +1,5 @@
+id = "10-generic-model"
+title = "GenericModel to BaseModel + Generic"
+difficulty = "medium"
+tier = 1
+patterns = ["moved-import", "generic-model", "deprecated-method"]

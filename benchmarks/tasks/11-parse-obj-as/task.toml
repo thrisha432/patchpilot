@@ -1,0 +1,5 @@
+id = "11-parse-obj-as"
+title = "parse_obj_as to TypeAdapter"
+difficulty = "easy"
+tier = 1
+patterns = ["parse-obj-as"]

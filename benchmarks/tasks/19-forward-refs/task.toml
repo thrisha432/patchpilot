@@ -1,0 +1,5 @@
+id = "19-forward-refs"
+title = "update_forward_refs on a recursive model"
+difficulty = "easy"
+tier = 1
+patterns = ["deprecated-method"]

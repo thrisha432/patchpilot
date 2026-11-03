@@ -1,0 +1,1 @@
+{"text": "{\"content\": \"from pydantic import BaseModel\\n\\n\\nclass Weather(BaseModel):\\n    city: str\\n    temp_c: float\\n\"}", "usage": {"calls": 1, "prompt_tokens": 1467, "completion_tokens": 171, "seconds": 2.044, "errors": 0, "cost_usd": 0.00036207000000000004}}

@@ -1,0 +1,5 @@
+id = "39-decimal-json"
+title = "Decimal fields serialize as JSON strings in v2 (consumers expect numbers)"
+difficulty = "hard"
+tier = 3
+patterns = ["semantic-only", "deprecated-method"]

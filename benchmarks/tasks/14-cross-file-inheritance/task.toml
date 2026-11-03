@@ -1,0 +1,5 @@
+id = "14-cross-file-inheritance"
+title = "Models inherited across files"
+difficulty = "medium"
+tier = 1
+patterns = ["config-class", "deprecated-method"]

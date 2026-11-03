@@ -1,0 +1,1 @@
+{"text": "{\"content\": \"from datetime import datetime\\n\\nfrom pydantic import BaseModel, ConfigDict\\n\\n\\nclass Entity(BaseModel):\\n    model_config = ConfigDict(from_attributes=True)\\n\\n    id: int\\n    created_at: datetime\\n\"}", "usage": {"calls": 1, "prompt_tokens": 1497, "completion_tokens": 210, "seconds": 2.121, "errors": 0, "cost_usd": 0.00038514000000000007}}

@@ -1,0 +1,5 @@
+id = "13-config-options"
+title = "Renamed config options (aliases, whitespace, extra, frozen)"
+difficulty = "medium"
+tier = 1
+patterns = ["config-class", "moved-import"]

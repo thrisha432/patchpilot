@@ -1,0 +1,5 @@
+id = "24-long-module"
+title = "240-line billing module: a few Pydantic spots among lots of plain code"
+difficulty = "hard"
+tier = 2
+patterns = ["validator", "config-class", "deprecated-method", "long-file"]

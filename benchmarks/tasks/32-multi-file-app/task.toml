@@ -1,0 +1,5 @@
+id = "32-multi-file-app"
+title = "Six-file inventory app: settings, nested ORM models, generic pages, decoys, a behavior change"
+difficulty = "hard"
+tier = 2
+patterns = ["moved-import", "config-class", "validator", "generic-model", "deprecated-method", "precision", "semantic-only"]

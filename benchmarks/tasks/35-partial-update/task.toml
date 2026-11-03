@@ -1,0 +1,5 @@
+id = "35-partial-update"
+title = "PATCH semantics with __fields_set__ and dict(exclude_unset=True)"
+difficulty = "medium"
+tier = 3
+patterns = ["deprecated-method"]

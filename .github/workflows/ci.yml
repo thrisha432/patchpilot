@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.lock && pip install --no-deps -e .
+      - run: ruff check .
+      - run: ruff format --check .
+      - name: Type check (mypy --strict)
+        run: mypy
+      - name: Dependency vulnerability scan
+        run: pip-audit -r requirements.lock
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -r requirements-dev.lock && pip install --no-deps -e .
+      - name: Build the sandbox images (so the Docker security tests run too)
+        run: patchpilot sandbox build
+      - name: Validate every benchmark task (v1 passes, v2 fails, reference passes)
+        if: matrix.python-version == '3.12'
+        run: python benchmarks/validate_tasks.py
+      - name: Tests (no network LLM calls: the model is scripted in tests)
+        run: pytest --cov --cov-report=term --cov-report=xml
+      - uses: actions/upload-artifact@v5
+        if: matrix.python-version == '3.12'
+        with:
+          name: coverage-xml
+          path: coverage.xml
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

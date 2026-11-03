@@ -1,0 +1,5 @@
+id = "03-validator"
+title = "Field @validator"
+difficulty = "easy"
+tier = 1
+patterns = ["validator"]

@@ -1,0 +1,5 @@
+id = "23-float-to-int"
+title = "Behavior change with no deprecated API: v2 rejects 3.7 for an int field"
+difficulty = "hard"
+tier = 1
+patterns = ["semantic-only"]

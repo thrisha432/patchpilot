@@ -1,0 +1,5 @@
+id = "38-subclass-serialization"
+title = "Subclass instances in a base-typed field lose their extra fields when dumped in v2"
+difficulty = "hard"
+tier = 3
+patterns = ["semantic-only", "deprecated-method"]

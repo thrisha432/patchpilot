@@ -1,0 +1,5 @@
+id = "12-field-constraints"
+title = "Field/constr/conlist constraint arguments"
+difficulty = "easy"
+tier = 1
+patterns = ["field-kwargs"]

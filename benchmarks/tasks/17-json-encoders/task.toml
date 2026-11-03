@@ -1,0 +1,5 @@
+id = "17-json-encoders"
+title = "Config.json_encoders to field serializers"
+difficulty = "hard"
+tier = 1
+patterns = ["config-class", "deprecated-method"]

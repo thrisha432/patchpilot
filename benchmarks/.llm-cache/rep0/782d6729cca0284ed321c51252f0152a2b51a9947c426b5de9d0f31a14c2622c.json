@@ -1,0 +1,1 @@
+{"text": "{\"content\": \"from app.legacy import Record\\nfrom app.models import Order\\n\\n\\ndef get_order(raw: dict) -> Order:\\n    return Order.model_validate(raw)\\n\\n\\ndef get_record(raw: dict) -> Record:\\n    return Record(**raw)\\n\"}", "usage": {"calls": 1, "prompt_tokens": 1485, "completion_tokens": 126, "seconds": 2.481, "errors": 0, "cost_usd": 0.0073383}}

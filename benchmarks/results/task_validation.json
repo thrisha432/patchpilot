@@ -1,0 +1,362 @@
+[
+  {
+    "task": "01-orm-mode",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "02-model-methods",
+    "ok": true,
+    "v1_original": "6/6",
+    "v2_original_failing": 6,
+    "v2_reference": "6/6",
+    "findings": 5,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "03-validator",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "04-validator-pre-each-item",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "05-validator-values",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "06-root-validators",
+    "ok": true,
+    "v1_original": "5/5",
+    "v2_original_failing": 2,
+    "v2_reference": "5/5",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "07-optional-required",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 3,
+    "v2_reference": "3/3",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "08-base-settings",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "09-custom-root",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "10-generic-model",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "11-parse-obj-as",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 4,
+    "v2_reference": "4/4",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "12-field-constraints",
+    "ok": true,
+    "v1_original": "7/7",
+    "v2_original_failing": 2,
+    "v2_reference": "7/7",
+    "findings": 4,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "13-config-options",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "14-cross-file-inheritance",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 4,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "15-decoys",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "16-json-schema",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "17-json-encoders",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "18-validate-arguments",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "19-forward-refs",
+    "ok": true,
+    "v1_original": "2/2",
+    "v2_original_failing": 2,
+    "v2_reference": "2/2",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "20-construct-and-fields",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 3,
+    "v2_reference": "3/3",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "21-service-layer",
+    "ok": true,
+    "v1_original": "5/5",
+    "v2_original_failing": 2,
+    "v2_reference": "5/5",
+    "findings": 9,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "22-moved-errors-import",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 1,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "23-float-to-int",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 0,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "24-long-module",
+    "ok": true,
+    "v1_original": "7/7",
+    "v2_original_failing": 2,
+    "v2_reference": "7/7",
+    "findings": 4,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "25-cross-file-decoys",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 1,
+    "v2_reference": "3/3",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "26-str-coercion",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 1,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "27-union-smart-mode",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 1,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "28-error-codes",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 1,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "29-config-fields-alias",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "30-reused-validator",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "31-method-references",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "32-multi-file-app",
+    "ok": true,
+    "v1_original": "5/5",
+    "v2_original_failing": 2,
+    "v2_reference": "5/5",
+    "findings": 11,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "33-pydantic-dataclasses",
+    "ok": true,
+    "v1_original": "3/3",
+    "v2_original_failing": 2,
+    "v2_reference": "3/3",
+    "findings": 0,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "34-const-discriminator",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 4,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "35-partial-update",
+    "ok": true,
+    "v1_original": "2/2",
+    "v2_original_failing": 2,
+    "v2_reference": "2/2",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "36-validator-always",
+    "ok": true,
+    "v1_original": "5/5",
+    "v2_original_failing": 2,
+    "v2_reference": "5/5",
+    "findings": 2,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "37-alias-generator",
+    "ok": true,
+    "v1_original": "2/2",
+    "v2_original_failing": 2,
+    "v2_reference": "2/2",
+    "findings": 3,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "38-subclass-serialization",
+    "ok": true,
+    "v1_original": "2/2",
+    "v2_original_failing": 2,
+    "v2_reference": "2/2",
+    "findings": 1,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "39-decimal-json",
+    "ok": true,
+    "v1_original": "2/2",
+    "v2_original_failing": 1,
+    "v2_reference": "2/2",
+    "findings": 1,
+    "residual_on_reference": 0
+  },
+  {
+    "task": "40-orders-service",
+    "ok": true,
+    "v1_original": "4/4",
+    "v2_original_failing": 2,
+    "v2_reference": "4/4",
+    "findings": 5,
+    "residual_on_reference": 0
+  }
+]

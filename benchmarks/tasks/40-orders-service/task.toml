@@ -1,0 +1,5 @@
+id = "40-orders-service"
+title = "Multi-file orders service: root validator without skip_on_failure, deep copy, decoys"
+difficulty = "hard"
+tier = 3
+patterns = ["root-validator", "config-class", "deprecated-method", "precision"]

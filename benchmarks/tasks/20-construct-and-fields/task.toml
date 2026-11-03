@@ -1,0 +1,5 @@
+id = "20-construct-and-fields"
+title = "construct(), __fields__ and dict() in a CSV exporter"
+difficulty = "medium"
+tier = 1
+patterns = ["deprecated-method"]

@@ -1,0 +1,5 @@
+id = "29-config-fields-alias"
+title = "Aliases declared in Config.fields (removed in v2)"
+difficulty = "hard"
+tier = 2
+patterns = ["config-class"]

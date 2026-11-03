@@ -1,0 +1,5 @@
+id = "30-reused-validator"
+title = "Validator reused across fields without decorator syntax (allow_reuse)"
+difficulty = "hard"
+tier = 2
+patterns = ["validator"]

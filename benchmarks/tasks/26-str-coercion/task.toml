@@ -1,0 +1,5 @@
+id = "26-str-coercion"
+title = "v2 no longer coerces numbers to str fields (no deprecated API involved)"
+difficulty = "hard"
+tier = 2
+patterns = ["semantic-only", "config-class"]

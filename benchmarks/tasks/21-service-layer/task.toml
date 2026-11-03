@@ -1,0 +1,5 @@
+id = "21-service-layer"
+title = "Multi-file service: nested ORM models, validators, optional fields, JSON API"
+difficulty = "hard"
+tier = 1
+patterns = ["config-class", "validator", "optional-no-default", "field-kwargs", "deprecated-method"]
